@@ -74,23 +74,12 @@ void kinematics (int leg, int mode, float x, float y, float z, float roll, float
     // convert degrees to radians for the calcs
     yawAngle = (PI/180) * yaw;
 
+    int signX = ((leg == 1) || (leg == 2)) ? -1 : 1;
+    int signY = ((leg == 1) || (leg == 3)) ? -1 : 1;
+
     // put in offsets from robot's parameters so we can work out the radius of the foot from the robot's centre
-    if (leg == 1) {         // front left leg
-       y = y - (bodyWidth+hipOffset); 
-       x = x - bodyLength;      
-    }
-    else if (leg == 2) {    // front right leg
-       y = y + (bodyWidth+hipOffset);
-       x = x - bodyLength; 
-    }
-    else if (leg == 3) {    // back left leg
-       y = y - (bodyWidth+hipOffset); 
-       x = x + bodyLength;
-    }
-    else if (leg == 4) {    // back left leg
-       y = y + (bodyWidth+hipOffset); 
-       x = x + bodyLength;
-    }
+    y = y + signY * (bodyWidth+hipOffset); 
+    x = x + signX * bodyLength;      
 
     //calc existing angle of leg from cetre
     existingAngle = atan(y/x);   
@@ -106,33 +95,14 @@ void kinematics (int leg, int mode, float x, float y, float z, float roll, float
     yy3 = radius * sin(demandYaw);
 
     // remove the offsets so we pivot around 0/0 x/y
-    if (leg == 1) {         // front left leg
-       yy3 = yy3 + (bodyWidth+hipOffset); 
-       xx3 = xx3 + bodyLength;      
-    }
-    else if (leg == 2) {    // front right leg
-       yy3 = yy3 - (bodyWidth+hipOffset);
-       xx3 = xx3 + bodyLength; 
-    }
-    else if (leg == 3) {    // back left leg
-       yy3 = yy3 + (bodyWidth+hipOffset); 
-       xx3 = xx3 - bodyLength;
-    }
-    else if (leg == 4) {    // back left leg
-       yy3 = yy3 - (bodyWidth+hipOffset); 
-       xx3 = xx3 - bodyLength;
-    }
+    yy3 = yy3 - signY * (bodyWidth+hipOffset); 
+    xx3 = xx3 - signX * bodyLength;      
 
     // *** PITCH AXIS ***
 
     //turn around the pitch for front or back of the robot
-    if (leg == 1 || leg == 2) {
-      pitch = 0-pitch;      
-    }
-    else if (leg == 3 || leg == 4) {
-      pitch = 0+pitch;
-      xx3 = xx3*-1;       // switch over x for each end of the robot
-    }
+    pitch *= signX;
+    xx3 *= -signX; // switch over x for each end of the robot
 
     // convert pitch to degrees
     pitchAngle = (PI/180) * pitch;
@@ -161,22 +131,13 @@ void kinematics (int leg, int mode, float x, float y, float z, float roll, float
 
     //calc new Z to pass on
     xx1 = sin(footWholeAnglePitch) * zz2a;
-
-    if (leg == 3 || leg == 4 ){     // switch back X for the back of the robot
-      xx1 = xx1 *-1;
-    }
-
+    xx1 *= -signX; // switch back X for the back of the robot
 
     // *** ROLL AXIS ***
 
     //turn around roll angle for each side of the robot
-    if (leg == 1 || leg == 3) {
-      roll = 0+roll;
-      yy3 = yy3*-1;
-    }
-    else if (leg == 2 || leg == 4) {
-      roll = 0-roll;
-    }   
+    roll *= -signY;
+    yy3 *= signY;
 
     // convert roll angle to radians
     rollAngle = (PI/180) * roll;    //covert degrees from the stick to radians
